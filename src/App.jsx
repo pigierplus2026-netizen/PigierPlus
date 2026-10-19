@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import Auth from './Auth.jsx'
 import { Accueil, Epreuves, Stages, Profil, Admin } from './pages.jsx'
+import { Campus, Vie } from './vie.jsx'
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -37,9 +38,11 @@ export default function App() {
     </div>
   )
 
-  const onglets = [['accueil', 'Accueil'], ['epreuves', 'Épreuves']]
+  const entreprise = p.role === 'entreprise'
+  const onglets = [['accueil', 'Accueil']]
+  if (!entreprise) onglets.push(['campus', 'Campus'], ['epreuves', 'Épreuves'])
   if (p.role !== 'enseignant') onglets.push(['stages', 'Stages'])
-  if (p.role === 'administration') onglets.push(['admin', 'Admin'])
+  if (!entreprise) onglets.push(['vie', 'Vie'])
   onglets.push(['profil', 'Profil'])
 
   return (
@@ -50,10 +53,15 @@ export default function App() {
       </nav>
       <main>
         {tab === 'accueil' && <Accueil p={p} />}
-        {tab === 'epreuves' && <Epreuves p={p} />}
+        {tab === 'campus' && !entreprise && <Campus p={p} />}
+        {tab === 'epreuves' && !entreprise && <Epreuves p={p} />}
         {tab === 'stages' && <Stages p={p} />}
-        {tab === 'admin' && <Admin p={p} />}
-        {tab === 'profil' && <Profil p={p} recharger={charger} sortir={sortir} />}
+        {tab === 'vie' && !entreprise && <Vie p={p} />}
+        {tab === 'admin' && p.role === 'administration' && <Admin p={p} />}
+        {tab === 'profil' && <>
+          {p.role === 'administration' && <button className="btn jaune" onClick={() => setTab('admin')}>Ouvrir l'administration</button>}
+          <Profil p={p} recharger={charger} sortir={sortir} />
+        </>}
         <p className="muted" style={{ textAlign: 'center', marginTop: 28 }}>À Pigier Bénin, nous sommes une famille</p>
       </main>
     </div>
