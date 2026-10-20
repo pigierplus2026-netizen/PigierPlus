@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
-import { Campus } from './vie.jsx'
+import { CampusPlus, ViePlus, ScolariteAdmin } from './plus.jsx'
 import { Vie } from './vie.jsx'
 
 const Msg = ({ m }) => (m ? <div className={'msg' + (m.ok ? ' ok' : '')} role="status">{m.t}</div> : null)
