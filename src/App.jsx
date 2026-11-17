@@ -1,18 +1,28 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabase'
 import Auth from './Auth.jsx'
-import { Accueil, Epreuves, Stages, Profil, Admin } from './pages.jsx'
-import { CampusPlus, ViePlus, ScolariteAdmin } from './plus.jsx'
+import Coque from './moodle.jsx'
 
 export default function App() {
   const [session, setSession] = useState(null)
   const [prete, setPrete] = useState(false)
   const [p, setP] = useState(null)
-  const [tab, setTab] = useState('accueil')
+  const [recup, setRecup] = useState(false)
+  const [nouveau, setNouveau] = useState('')
+  const [info, setInfo] = useState(null)
+
+  // Écran d'ouverture : emblème P de Pigier, retiré après 1,5 s
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const s = document.getElementById('splash')
+      if (s) { s.classList.add('fin'); setTimeout(() => s.remove(), 600) }
+    }, 1500)
+    return () => clearTimeout(t)
+  }, [])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setPrete(true) })
-    const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    const { data } = supabase.auth.onAuthStateChange((e, s) => { setSession(s); if (e === 'PASSWORD_RECOVERY') setRecup(true) })
     return () => data.subscription.unsubscribe()
   }, [])
 
@@ -27,6 +37,23 @@ export default function App() {
   if (!session) return <Auth />
   if (!p) return <div className="center">Chargement…</div>
 
+  if (recup) return (
+    <div className="center">
+      <img src="/logo.png" alt="Pigier Bénin" />
+      <h1>Choisissez un nouveau mot de passe</h1>
+      <form onSubmit={async (e) => {
+        e.preventDefault()
+        const { error } = await supabase.auth.updateUser({ password: nouveau })
+        if (error) setInfo({ t: error.message }); else { setRecup(false); setNouveau('') }
+      }}>
+        <label htmlFor="nmdp">Nouveau mot de passe (8 caractères minimum)</label>
+        <input id="nmdp" type="password" required minLength={8} autoComplete="new-password" value={nouveau} onChange={(e) => setNouveau(e.target.value)} />
+        {info && <div className="msg" role="alert">{info.t}</div>}
+        <button className="btn jaune" style={{ width: '100%' }} type="submit">Enregistrer</button>
+      </form>
+    </div>
+  )
+
   const sortir = () => supabase.auth.signOut()
   if (!p.valide) return (
     <div className="center">
@@ -38,32 +65,5 @@ export default function App() {
     </div>
   )
 
-  const entreprise = p.role === 'entreprise'
-  const onglets = [['accueil', 'Accueil']]
-  if (!entreprise) onglets.push(['campus', 'Campus'], ['epreuves', 'Épreuves'])
-  if (p.role !== 'enseignant') onglets.push(['stages', 'Stages'])
-  if (!entreprise) onglets.push(['vie', 'Vie'])
-  onglets.push(['profil', 'Profil'])
-
-  return (
-    <div className="shell">
-      <header className="top"><img src="/logo.png" alt="Pigier Bénin" /><span>{p.prenom} {p.nom}</span></header>
-      <nav className="nav" aria-label="Navigation principale">
-        {onglets.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}>{l}</button>)}
-      </nav>
-      <main>
-        {tab === 'accueil' && <Accueil p={p} />}
-        {tab === 'campus' && !entreprise && <CampusPlus p={p} />}
-        {tab === 'epreuves' && !entreprise && <Epreuves p={p} />}
-        {tab === 'stages' && <Stages p={p} />}
-        {tab === 'vie' && !entreprise && <ViePlus p={p} />}
-        {tab === 'admin' && p.role === 'administration' && <><Admin p={p} /><ScolariteAdmin /></>}
-        {tab === 'profil' && <>
-          {p.role === 'administration' && <button className="btn jaune" onClick={() => setTab('admin')}>Ouvrir l'administration</button>}
-          <Profil p={p} recharger={charger} sortir={sortir} />
-        </>}
-        <p className="muted" style={{ textAlign: 'center', marginTop: 28 }}>À Pigier Bénin, nous sommes une famille</p>
-      </main>
-    </div>
-  )
+  return <Coque p={p} recharger={charger} sortir={sortir} />
 }
