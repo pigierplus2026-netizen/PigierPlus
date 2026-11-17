@@ -1,11 +1,22 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0B2A6F">
+<meta name="theme-color" content="#ffffff">
 <meta name="description" content="À Pigier Bénin, nous sommes une famille">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icon-192.png"><link rel="apple-touch-icon" href="/icon-192.png">
-<title>Pigier Bénin</title></head>
-<body><div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
+<title>Pigier Bénin</title>
+<style>
+#splash{position:fixed;top:0;right:0;bottom:0;left:0;z-index:99999;background:#fff;display:flex;align-items:center;justify-content:center;transition:opacity .5s}
+#splash.fin{opacity:0;pointer-events:none}
+#splash img{width:min(55vw,260px);height:auto;position:relative;animation:spin 1.1s ease-out both}
+#splash .halo{position:absolute;width:min(75vw,360px);height:min(75vw,360px);border-radius:50%;border:4px solid #FFC20E;opacity:0;animation:halo 1.6s ease-out .2s both}
+#splash .halo.b{border-color:#0000A0;animation-delay:.5s}
+@keyframes spin{from{opacity:0;transform:scale(.8) rotate(-10deg)}to{opacity:1;transform:none}}
+@keyframes halo{0%{opacity:.9;transform:scale(.55)}100%{opacity:0;transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){#splash img,#splash .halo{animation:none}#splash .halo{display:none}}
+</style></head>
+<body><div id="splash"><div class="halo"></div><div class="halo b"></div><img src="/icon-512.png" alt="Pigier Bénin"></div>
+<div id="root"></div><script type="module" src="/src/main.jsx"></script></body></html>
