@@ -16,14 +16,15 @@ export default function Auth() {
     } else {
       const { data, error } = await supabase.auth.signUp({ email: f.email, password: f.mdp, options: { data: { nom: f.nom, prenom: f.prenom } } })
       if (error) setMsg({ t: error.message })
-      else if (!data.session) setMsg({ t: 'Compte créé. Confirmez votre adresse email avec le lien reçu, puis connectez-vous.', ok: true })
-      else setMsg({ t: 'Compte créé. Il sera actif après validation par l\'administration.', ok: true })
+      else if (!data.session) setMsg({ t: 'Compte créé. En attente de validation.', ok: true })
+      else setMsg({ t: 'Compte créé. En attente de validation.', ok: true })
     }
   }
-  const oubli = async () => {
-    if (!f.email) return setMsg({ t: 'Saisissez d\'abord votre email.' })
-    await supabase.auth.resetPasswordForEmail(f.email)
-    setMsg({ t: 'Si ce compte existe, un email de réinitialisation vient d\'être envoyé.', ok: true })
+  const oubli = () => setMsg({ t: 'Adressez votre demande à l\'administration.' })
+  const bio = async () => {
+    setMsg(null)
+    const { error } = await supabase.auth.signInWithPasskey()
+    if (error) setMsg({ t: 'Connexion biométrique impossible. Utilisez votre mot de passe, puis activez-la depuis Profil.' })
   }
 
   return (
@@ -43,10 +44,11 @@ export default function Auth() {
         {msg && <div className={'msg' + (msg.ok ? ' ok' : '')} role="alert">{msg.t}</div>}
         <button className="btn jaune" style={{ width: '100%' }} type="submit">{mode === 'connexion' ? 'Se connecter' : 'Créer mon compte'}</button>
       </form>
+      {mode === 'connexion' && <button className="btn" style={{ width: '100%' }} type="button" onClick={bio}>Se connecter avec empreinte ou visage</button>}
       <button className="btn ghost" onClick={() => { setMsg(null); setMode(mode === 'connexion' ? 'inscription' : 'connexion') }}>
         {mode === 'connexion' ? 'Créer un compte' : 'J\'ai déjà un compte'}
       </button>
-      {mode === 'connexion' && <button className="btn ghost" onClick={oubli}>Mot de passe oublié</button>}
+      {mode === 'connexion' && <button className="btn ghost" onClick={oubli}>Soumettre une requête</button>}
     </div>
   )
 }
